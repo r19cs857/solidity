@@ -90,6 +90,21 @@ void solidity_free(char* _data) SOLC_NOEXCEPT;
 /// @returns A pointer to the result. The pointer returned must be freed by the caller using solidity_free() or solidity_reset().
 char* solidity_compile(char const* _input, CStyleReadFileCallback _readCallback, void* _readContext) SOLC_NOEXCEPT;
 
+/// @TODO the biggest problem here is that the callback has to be synchronous.
+/// With "compile" we would just record requested files and trigger a recompile later,
+/// so we might need a way to trigger a recompile.
+
+/// Switch into LSP mode. Can be undone using solidity_reset().
+void solidity_lsp_start(CStyleReadFileCallback _readCallback, void* _readContext) SOLC_NOEXCEPT;
+/// Send one or more JSON-RPC messages to the LSP (including the HTTP headers), expecting a response.
+/// If the input is empty, just checks for a pending response.
+/// @returns JSON-RPC message (inculding HTTP headers), can be empty (or nullptr).
+/// If the result is not null, it has to be freed by the caller using solidity_free.
+///
+/// This can cause the callback provided in solidity_lsp to be invoked.
+/// Should only be called after having called solidity_lsp.
+char const *solidity_lsp_sendReceive(char const* _input);
+
 /// Frees up any allocated memory.
 ///
 /// NOTE: the pointer returned by solidity_compile as well as any other pointer retrieved via solidity_alloc()

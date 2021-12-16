@@ -24,6 +24,8 @@
 #include <libsolc/libsolc.h>
 #include <libsolidity/interface/StandardCompiler.h>
 #include <libsolidity/interface/Version.h>
+#include <libsolidity/lsp/LanguageServer.h>
+#include <libsolidity/lsp/Transport.h>
 #include <libyul/YulString.h>
 
 #include <cstdlib>
@@ -112,6 +114,9 @@ string compile(string _input, CStyleReadFileCallback _readCallback, void* _readC
 	return compiler.compile(move(_input));
 }
 
+unique_ptr<lsp::BufferedTransport> languageServerTransport;
+unique_ptr<lsp::LanguageServer> languageServer;
+
 }
 
 extern "C"
@@ -130,6 +135,23 @@ extern char const* solidity_version() noexcept
 extern char* solidity_compile(char const* _input, CStyleReadFileCallback _readCallback, void* _readContext) noexcept
 {
 	return solidityAllocations.emplace_back(compile(_input, _readCallback, _readContext)).data();
+}
+
+extern void solidity_lsp_start(CStyleReadFileCallback _readCallback, void* _readContext) noexcept
+{
+	// TODO error handling
+	// solAssert(!languageServer && !languageServerTransport)
+	languageServerTransport = make_unique<lsp::BufferedTransport>();
+}
+
+extern char* solidity_lsp_sendReceive(char const* _input) noexcept
+{
+	// TODO error handling
+	// solAssert(languageServer && languageServerTransport)
+	languageServerTransport->appendInput(_input);
+	// TODO process bool result?
+	languageServer->runIteration();
+	return solidityAllocations.emplace_back(languageServerTransport->popOutput()).data();
 }
 
 extern char* solidity_alloc(size_t _size) noexcept
@@ -156,5 +178,7 @@ extern void solidity_reset() noexcept
 	// can be freed here.
 	yul::YulStringRepository::reset();
 	solidityAllocations.clear();
+	languageServer.reset();
+	languageServerTrasport.reset();
 }
 }

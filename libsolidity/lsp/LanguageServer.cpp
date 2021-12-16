@@ -87,6 +87,7 @@ constexpr int toDiagnosticSeverity(Error::Type _errorType)
 
 }
 
+// TODO provide constructor with custom read callback
 LanguageServer::LanguageServer(Transport& _transport):
 	m_client{_transport},
 	m_handlers{
@@ -238,34 +239,38 @@ void LanguageServer::compileAndUpdateDiagnostics()
 
 bool LanguageServer::run()
 {
-	while (m_state != State::ExitRequested && m_state != State::ExitWithoutShutdown && !m_client.closed())
+	while (runIteration())
 	{
-		MessageID id;
-		try
-		{
-			optional<Json::Value> const jsonMessage = m_client.receive();
-			if (!jsonMessage)
-				continue;
-
-			if ((*jsonMessage)["method"].isString())
-			{
-				string const methodName = (*jsonMessage)["method"].asString();
-				id = (*jsonMessage)["id"];
-
-				if (auto handler = valueOrDefault(m_handlers, methodName))
-					handler(id, (*jsonMessage)["params"]);
-				else
-					m_client.error(id, ErrorCode::MethodNotFound, "Unknown method " + methodName);
-			}
-			else
-				m_client.error({}, ErrorCode::ParseError, "\"method\" has to be a string.");
-		}
-		catch (...)
-		{
-			m_client.error(id, ErrorCode::InternalError, "Unhandled exception: "s + boost::current_exception_diagnostic_information());
-		}
 	}
 	return m_state == State::ExitRequested;
+}
+
+bool LanguageServer::runIteration()
+{
+	MessageID id;
+	try
+	{
+		optional<Json::Value> const jsonMessage = m_client.receive();
+		if (!jsonMessage)
+			return true;
+
+		if ((*jsonMessage)["method"].isString())
+		{
+			string const methodName = (*jsonMessage)["method"].asString();
+			id = (*jsonMessage)["id"];
+
+			if (auto handler = valueOrDefault(m_handlers, methodName))
+				handler(id, (*jsonMessage)["params"]);
+			else
+				m_client.error(id, ErrorCode::MethodNotFound, "Unknown method " + methodName);
+		}
+	}
+	catch (...)
+	{
+		m_client.error(id, ErrorCode::InternalError, "Unhandled exception: "s + boost::current_exception_diagnostic_information());
+	}
+
+	return m_state == State::ExitRequested || m_state == State::ExitWithoutShutdown || m_client.closed();
 }
 
 bool LanguageServer::checkServerInitialized(MessageID _id)

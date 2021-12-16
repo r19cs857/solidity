@@ -57,6 +57,11 @@ public:
 	/// @return boolean indicating normal or abnormal termination.
 	bool run();
 
+	/// Run a single iteration of processing inputs and generating outputs.
+	/// To be used when we are not in control of the event loop.
+	/// @returns false if the process is supposed to terminate.
+	bool runIteration();
+
 private:
 	/// Checks if the server is initialized (to be used by messages that need it to be initialized).
 	/// Reports an error and returns false if not.
