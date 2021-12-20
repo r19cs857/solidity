@@ -66,6 +66,9 @@ private:
 	void handleTextDocumentDidOpen(MessageID _id, Json::Value const& _args);
 	void handleTextDocumentDidChange(MessageID _id, Json::Value const& _args);
 	void handleTextDocumentDidClose(MessageID _id, Json::Value const& _args);
+	void handleGotoDefinition(MessageID _id, Json::Value const& _args);
+
+	frontend::ASTNode const* requestASTNode(std::string const& _sourceUnitName, langutil::LineColumn const& _filePos);
 
 	/// Invoked when the server user-supplied configuration changes (initiated by the client).
 	void changeConfiguration(Json::Value const&);
