@@ -2122,7 +2122,10 @@ void TypeChecker::typeCheckABIEncodeCallFunction(FunctionCall const& _functionCa
 		return;
 	}
 
-	if (functionPointerType->kind() != FunctionType::Kind::External)
+	if (
+		functionPointerType->kind() != FunctionType::Kind::External &&
+		functionPointerType->kind() != FunctionType::Kind::Declaration
+	)
 	{
 		string msg = "Function must be \"public\" or \"external\".";
 		SecondarySourceLocation ssl{};
@@ -2132,6 +2135,11 @@ void TypeChecker::typeCheckABIEncodeCallFunction(FunctionCall const& _functionCa
 			ssl.append("Function is declared here:", functionPointerType->declaration().location());
 			if (functionPointerType->declaration().scope() == m_currentContract)
 				msg += " Did you forget to prefix \"this.\"?";
+			else if (contains(
+				m_currentContract->annotation().linearizedBaseContracts,
+				functionPointerType->declaration().scope()
+			))
+				msg += " Functions from base contracts have to be external.";
 		}
 
 		m_errorReporter.typeError(3509_error, arguments[0]->location(), ssl, msg);
