@@ -36,24 +36,13 @@ EVM_VALUES=(homestead byzantium constantinople petersburg istanbul berlin london
 DEFAULT_EVM=london
 [[ " ${EVM_VALUES[*]} " =~ $DEFAULT_EVM ]]
 OPTIMIZE_VALUES=(0 1)
-STEPS=$(( 1 + ${#EVM_VALUES[@]} * ${#OPTIMIZE_VALUES[@]} ))
-
-RUN_STEPS=$(circleci_select_steps "$(seq "$STEPS")")
-printTask "Running steps $RUN_STEPS..."
-
-STEP=1
-
 
 # Run for ABI encoder v1, without SMTChecker tests.
-if circleci_step_selected "$RUN_STEPS" "$STEP"
-then
-    EVM="${DEFAULT_EVM}" \
-    OPTIMIZE=1 \
-    ABI_ENCODER_V1=1 \
-    BOOST_TEST_ARGS="-t !smtCheckerTests" \
-    "${REPODIR}/.circleci/soltest.sh"
-fi
-((++STEP))
+EVM="${DEFAULT_EVM}" \
+OPTIMIZE=1 \
+ABI_ENCODER_V1=1 \
+BOOST_TEST_ARGS="-t !smtCheckerTests" \
+"${REPODIR}/.circleci/soltest.sh"
 
 for OPTIMIZE in "${OPTIMIZE_VALUES[@]}"
 do
@@ -64,20 +53,14 @@ do
         [ "${EVM}" = "byzantium" ] && [ "${OPTIMIZE}" = "0" ] && EWASM_ARGS="--ewasm"
         ENFORCE_GAS_ARGS=""
         [ "${EVM}" = "${DEFAULT_EVM}" ] && ENFORCE_GAS_ARGS="--enforce-gas-cost"
-        # Run SMTChecker tests only when OPTIMIZE == 0
+        # Run SMTChecker tests only when OPTIMIZE == 0 and EVM is default
         DISABLE_SMTCHECKER=""
-        [ "${OPTIMIZE}" != "0" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
+        [ "${OPTIMIZE}" != "0" -o "${EVM}" != "${DEFAULT_EVM}" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
 
-        if circleci_step_selected "$RUN_STEPS" "$STEP"
-        then
-            EVM="$EVM" \
-            OPTIMIZE="$OPTIMIZE" \
-            SOLTEST_FLAGS="$SOLTEST_FLAGS $ENFORCE_GAS_ARGS $EWASM_ARGS" \
-            BOOST_TEST_ARGS="-t !@nooptions $DISABLE_SMTCHECKER" \
-            "${REPODIR}/.circleci/soltest.sh"
-        fi
-        ((++STEP))
+        EVM="$EVM" \
+        OPTIMIZE="$OPTIMIZE" \
+        SOLTEST_FLAGS="$SOLTEST_FLAGS $ENFORCE_GAS_ARGS $EWASM_ARGS" \
+        BOOST_TEST_ARGS="-t !@nooptions $DISABLE_SMTCHECKER" \
+        "${REPODIR}/.circleci/soltest.sh"
     done
 done
-
-((STEP == STEPS + 1)) || assertFail "Step counter not properly adjusted!"

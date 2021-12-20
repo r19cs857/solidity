@@ -897,7 +897,7 @@ jobs:
 
   t_ubu_soltest_all: &t_ubu_soltest_all
     <<: *base_ubuntu2004
-    parallelism: 15 # 7 EVM versions, each with/without optimization + 1 ABIv1/@nooptions run
+    parallelism: 100
     <<: *steps_soltest_all
 
   t_ubu_lsp: &t_ubu_lsp
