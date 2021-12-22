@@ -143,6 +143,7 @@ defaults:
 
   # compiled executable targets
   - workspace_linux_executables: &workspace_linux_executables
+      root: .
       paths:
         - build/solc/solc
         - build/test/soltest
@@ -152,6 +153,7 @@ defaults:
 
   # compiled OSSFUZZ targets
   - workspace_linux_executables_ossfuzz: &workspace_linux_executables_ossfuzz
+      root: .
       paths:
         - build/test/tools/ossfuzz/abiv2_proto_ossfuzz
         - build/test/tools/ossfuzz/abiv2_isabelle_ossfuzz
