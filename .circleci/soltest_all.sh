@@ -43,6 +43,9 @@ ABI_ENCODER_V1=1 \
 BOOST_TEST_ARGS="-t !smtCheckerTests" \
 "${REPODIR}/.circleci/soltest.sh"
 
+# We shift the batch index so that long-running tests
+# do not always run in the same executor for all EVM versions
+INDEX_SHIFT=0
 for OPTIMIZE in "${OPTIMIZE_VALUES[@]}"
 do
     for EVM in "${EVM_VALUES[@]}"
@@ -60,6 +63,9 @@ do
         OPTIMIZE="$OPTIMIZE" \
         SOLTEST_FLAGS="$SOLTEST_FLAGS $ENFORCE_GAS_ARGS $EWASM_ARGS" \
         BOOST_TEST_ARGS="-t !@nooptions $DISABLE_SMTCHECKER" \
+        INDEX_SHIFT="$INDEX_SHIFT" \
         "${REPODIR}/.circleci/soltest.sh"
+
+        INDEX_SHIFT=$((INDEX_SHIFT + 1))
     done
 done

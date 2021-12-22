@@ -61,6 +61,11 @@ get_logfile_basename() {
 
 [ -z "$CIRCLE_NODE_TOTAL" -o "$CIRCLE_NODE_TOTAL" = 0 ] && CIRCLE_NODE_TOTAL=1
 [ -z "$CIRCLE_NODE_INDEX" ] && CIRCLE_NODE_INDEX=0
+[ -z "$INDEX_SHIFT" ] && INDEX_SHIFT=0
+
+# Multiply by a prime number to get better spread, just in case
+# long-running test cases are next to each other.
+CIRCLE_NODE_INDEX=$(((CIRCLE_NODE_INDEX + 23 * INDEX_SHIFT) % CIRCLE_NODE_TOTAL))
 
 CPUs=2
 for run in $(seq CPUs)
