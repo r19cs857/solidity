@@ -66,6 +66,7 @@ function gnosis_safe_test
     neutralize_package_json_hooks
     force_truffle_compiler_settings "$config_file" "$BINARY_TYPE" "${DIR}/solc" "$(first_word "$SELECTED_PRESETS")"
     npm install --package-lock
+    npm install eth-gas-reporter
 
     replace_version_pragmas
     [[ $BINARY_TYPE == solcjs ]] && force_solc_modules "${DIR}/solc"

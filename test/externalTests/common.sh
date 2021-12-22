@@ -557,7 +557,7 @@ function store_benchmark_report
     [[ $framework == truffle || $framework == hardhat ]] || assertFail
     [[ " ${AVAILABLE_PRESETS[*]} " == *" $preset "* ]] || assertFail
 
-    local report_dir="${REPO_ROOT}/test/externalTests/reports"
+    local report_dir="${REPO_ROOT}/reports/externalTests"
     local output_file="${report_dir}/benchmark-${project_name}-${preset}.json"
     mkdir -p "$report_dir"
 
@@ -568,5 +568,5 @@ function store_benchmark_report
 
         "bytecode_size_json_from_${framework}_artifacts" | combine_artifact_json
         project_info_json "$project_name"
-    } | jq --slurp 'add' --indent 4 --sort-keys > "$output_file"
+    } | jq --slurp "{\"${project_name}\": {\"preset\": add}}" --indent 4 --sort-keys > "$output_file"
 }
