@@ -1142,7 +1142,11 @@ jobs:
                 command: |
                   test/externalTests/<<parameters.project>>.sh native /tmp/workspace/solc/solc
       - store_artifacts:
-          path: test/externalTests/reports/
+          path: reports/externalTests/
+      - persist_to_workspace:
+          root: .
+          paths:
+            - reports/externalTests/benchmark-*.json
       - gitter_notify_failure_unless_pr
 
   b_win: &b_win
