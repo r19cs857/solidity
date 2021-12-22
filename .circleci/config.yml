@@ -1146,7 +1146,7 @@ jobs:
       - persist_to_workspace:
           root: .
           paths:
-            - reports/externalTests/benchmark-*.json
+            - reports/externalTests/
       - gitter_notify_failure_unless_pr
 
   c_ext_benchmarks:
