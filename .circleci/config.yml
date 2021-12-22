@@ -1385,7 +1385,7 @@ workflows:
 
       # FIXME: Gnosis tests are pretty flaky right now. They often fail on CircleCI due to random ProviderError
       # and there are also other less frequent problems. See https://github.com/gnosis/safe-contracts/issues/216.
-      #- t_ems_ext: *job_native_test_ext_gnosis
+      #-t_ems_ext: *job_native_test_ext_gnosis
       - t_ems_ext: *job_native_test_ext_gnosis_v2
       - t_ems_ext: *job_native_test_ext_zeppelin
       - t_ems_ext: *job_native_test_ext_ens
