@@ -149,29 +149,27 @@ defaults:
 
   # compiled executable targets
   - artifacts_executables: &artifacts_executables
-      root: build
       paths:
-        - solc/solc
-        - test/soltest
-        - test/tools/solfuzzer
+        - build/solc/solc
+        - build/test/soltest
+        - build/test/tools/solfuzzer
 
   # compiled OSSFUZZ targets
   - artifacts_executables_ossfuzz: &artifacts_executables_ossfuzz
-      root: build
       paths:
-        - test/tools/ossfuzz/abiv2_proto_ossfuzz
-        - test/tools/ossfuzz/abiv2_isabelle_ossfuzz
-        - test/tools/ossfuzz/const_opt_ossfuzz
-        - test/tools/ossfuzz/solc_mutator_ossfuzz
-        - test/tools/ossfuzz/solc_ossfuzz
-        - test/tools/ossfuzz/stack_reuse_codegen_ossfuzz
-        - test/tools/ossfuzz/strictasm_assembly_ossfuzz
-        - test/tools/ossfuzz/strictasm_diff_ossfuzz
-        - test/tools/ossfuzz/strictasm_opt_ossfuzz
-        - test/tools/ossfuzz/yul_proto_diff_ossfuzz
-        - test/tools/ossfuzz/yul_proto_diff_custom_mutate_ossfuzz
-        - test/tools/ossfuzz/yul_proto_ossfuzz
-        - test/tools/ossfuzz/sol_proto_ossfuzz
+        - build/test/tools/ossfuzz/abiv2_proto_ossfuzz
+        - build/test/tools/ossfuzz/abiv2_isabelle_ossfuzz
+        - build/test/tools/ossfuzz/const_opt_ossfuzz
+        - build/test/tools/ossfuzz/solc_mutator_ossfuzz
+        - build/test/tools/ossfuzz/solc_ossfuzz
+        - build/test/tools/ossfuzz/stack_reuse_codegen_ossfuzz
+        - build/test/tools/ossfuzz/strictasm_assembly_ossfuzz
+        - build/test/tools/ossfuzz/strictasm_diff_ossfuzz
+        - build/test/tools/ossfuzz/strictasm_opt_ossfuzz
+        - build/test/tools/ossfuzz/yul_proto_diff_ossfuzz
+        - build/test/tools/ossfuzz/yul_proto_diff_custom_mutate_ossfuzz
+        - build/test/tools/ossfuzz/yul_proto_ossfuzz
+        - build/test/tools/ossfuzz/sol_proto_ossfuzz
 
   # test result output directory
   - artifacts_test_results: &artifacts_test_results
@@ -189,7 +187,7 @@ defaults:
       steps:
         - checkout
         - attach_workspace:
-            at: build
+            at: .
         # NOTE: Different build jobs produce different soltest executables (release/debug,
         # clang/gcc, windows/linux/macos, etc.). The executable used by these steps comes from the
         # attached workspace and we only see the items added to the workspace by jobs we depend on.
@@ -202,7 +200,7 @@ defaults:
       steps:
         - checkout
         - attach_workspace:
-            at: build
+            at: .
         - run:
             name: Install dependencies
             command: pip install --user deepdiff colorama
@@ -215,7 +213,7 @@ defaults:
       steps:
         - checkout
         - attach_workspace:
-            at: build
+            at: .
         - run: *run_soltest_all
         - store_test_results: *store_test_results
         - store_artifacts: *artifacts_test_results
@@ -225,7 +223,7 @@ defaults:
       steps:
         - checkout
         - attach_workspace:
-            at: build
+            at: .
         - run: *run_cmdline_tests
         - store_test_results: *store_test_results
         - store_artifacts: *artifacts_test_results
@@ -472,7 +470,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: build
+          at: .
       - run:
           name: Install dependencies
           command: |
@@ -487,7 +485,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: build
+          at: .
       - run:
           name: JS deps
           command: sudo npm install -g solhint
@@ -721,7 +719,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: build
+          at: .
       - run:
           name: "soltest: Syntax Tests"
           command: build/test/soltest -t 'syntaxTest*' -- --testpath test
@@ -762,7 +760,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: build
+          at: .
       - run:
           name: Regression tests
           command: |
@@ -872,14 +870,14 @@ jobs:
       - store_artifacts:
           path: emscripten_build/libsolc/soljson.js
           destination: soljson.js
-      - run: mkdir -p workspace
-      - run: cp emscripten_build/libsolc/soljson.js workspace/soljson.js
-      - run: scripts/get_version.sh > workspace/version.txt
+      - run: mkdir -p build/
+      - run: cp emscripten_build/libsolc/soljson.js build/soljson.js
+      - run: scripts/get_version.sh > build/version.txt
       - persist_to_workspace:
-          root: workspace
+          root: .
           paths:
-            - soljson.js
-            - version.txt
+            - build/soljson.js
+            - build/version.txt
       - gitter_notify_failure_unless_pr
 
   b_docs:
@@ -992,7 +990,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/workspace
+          at: .
       - run:
           name: Install test dependencies
           command: |
@@ -1004,18 +1002,17 @@ jobs:
           command: |
             node --version
             npm --version
-            test/externalTests/solc-js/solc-js.sh /tmp/workspace/soljson.js $(cat /tmp/workspace/version.txt)
+            test/externalTests/solc-js/solc-js.sh build/soljson.js $(cat build/version.txt)
       - gitter_notify_failure_unless_pr
 
   t_ems_ext_hardhat:
     <<: *base_node_latest_small
     environment:
       TERM: xterm
-      HARDHAT_TESTS_SOLC_PATH: /tmp/workspace/soljson.js
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/workspace
+          at: .
       - run: git clone --depth 1 https://github.com/nomiclabs/hardhat.git
       - run:
           name: Install dependencies
@@ -1026,7 +1023,8 @@ jobs:
           name: Run hardhat-core test suite
           command: |
             HARDHAT_TESTS_SOLC_VERSION=$(scripts/get_version.sh)
-            export HARDHAT_TESTS_SOLC_VERSION
+            HARDHAT_TESTS_SOLC_PATH="$PWD/build/soljson.js"
+            export HARDHAT_TESTS_SOLC_VERSION HARDHAT_TESTS_SOLC_PATH
 
             # NOTE: This is expected to work without running `yarn build` first.
             cd hardhat/packages/hardhat-core
@@ -1063,7 +1061,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: /tmp/workspace
+          at: .
       - run:
           name: Install lsof
           command: |
@@ -1076,7 +1074,7 @@ jobs:
             - run:
                 name: External <<parameters.project>> tests (solcjs)
                 command: |
-                  test/externalTests/<<parameters.project>>.sh solcjs /tmp/workspace/soljson.js
+                  test/externalTests/<<parameters.project>>.sh solcjs build/soljson.js
       - when:
           condition:
             equal: [<< parameters.binary_type >>, "native"]
@@ -1084,7 +1082,7 @@ jobs:
             - run:
                 name: External <<parameters.project>> tests (native)
                 command: |
-                  test/externalTests/<<parameters.project>>.sh native /tmp/workspace/solc/solc
+                  test/externalTests/<<parameters.project>>.sh native build/solc/solc
       - gitter_notify_failure_unless_pr
 
   b_win: &b_win
@@ -1112,10 +1110,10 @@ jobs:
           command: .\build\solc\Release\solc.exe --version
       - store_artifacts: *artifact_solc_windows
       - persist_to_workspace:
-          root: build
+          root: .
           paths:
-            - .\solc\*\solc.exe
-            - .\test\*\soltest.exe
+            - build\solc\*\solc.exe
+            - build\test\*\soltest.exe
       - gitter_notify_failure_unless_pr
 
   b_win_release:
@@ -1130,7 +1128,7 @@ jobs:
       # for files using CRLF that way.
       - checkout
       - attach_workspace:
-          at: build
+          at: .
       - run:
           name: "Install evmone"
           command: scripts/install_evmone.ps1
@@ -1149,7 +1147,7 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: build
+          at: .
       - run: mkdir -p test-cases/ reports/bytecode/
       - run: cd test-cases && ../scripts/isolate_tests.py ../test/
       - run: cd test-cases && ../scripts/bytecodecompare/prepare_report.py ../build/solc/solc --interface standard-json --report-file ../reports/bytecode/ubuntu-json.txt
@@ -1194,7 +1192,7 @@ jobs:
       - run: git config --global core.autocrlf false
       - checkout
       - attach_workspace:
-          at: build
+          at: .
       - run: mkdir -p test-cases/ reports/bytecode/
       - run: cd test-cases\ && python ..\scripts\isolate_tests.py ..\test\
       - run: cd test-cases\ && python ..\scripts\bytecodecompare\prepare_report.py ..\build\solc\Release\solc.exe --interface standard-json --report-file ..\reports\bytecode\windows-json.txt
@@ -1217,9 +1215,12 @@ jobs:
     steps:
       - checkout
       - attach_workspace:
-          at: emscripten_build/libsolc
-      - run: mkdir -p reports/bytecode/
-      - run: scripts/bytecodecompare/storebytecode.sh && mv -v report.txt reports/bytecode/emscripten.txt
+          at: .
+      - run: |
+          mkdir -p emscripten_build/libsolc/
+          ln -s ../../build/soljson.js emscripten_build/libsolc/soljson.js
+          scripts/bytecodecompare/storebytecode.sh
+          mv -v report.txt reports/bytecode/emscripten.txt
       - store_artifacts:
           path: reports/bytecode/emscripten.txt
       - persist_to_workspace:
