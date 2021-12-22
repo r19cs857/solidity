@@ -141,6 +141,11 @@ defaults:
       path: build/tools/yul-phaser
       destination: yul-phaser
 
+  # test result output directory
+  - artifacts_test_results: &artifacts_test_results
+      path: test_results/
+      destination: test_results/
+
   # compiled executable targets
   - workspace_linux_executables: &workspace_linux_executables
       root: .
@@ -170,6 +175,7 @@ defaults:
         - build/test/tools/ossfuzz/sol_proto_ossfuzz
 
   - workspace_windows_executables: &workspace_windows_executables
+      root: .
       paths:
         - build/solc/*/solc.exe
         - build/test/*/soltest.exe
@@ -178,11 +184,13 @@ defaults:
         - build/tools/*/yul-phaser.exe
 
   - workspace_emscripten_executables: &workspace_emscripten_executables
+      root: .
       paths:
         - build/soljson.js
         - build/version.txt
 
   - workspace_bytecode_reports: &workspace_bytecode_reports
+      root: .
       paths:
         - reports/bytecode/ubuntu-json.txt
         - reports/bytecode/ubuntu-cli.txt
@@ -191,11 +199,6 @@ defaults:
         - reports/bytecode/windows-json.txt
         - reports/bytecode/windows-cli.txt
         - reports/bytecode/emscripten.txt
-
-  # test result output directory
-  - artifacts_test_results: &artifacts_test_results
-      path: test_results/
-      destination: test_results/
 
   # --------------------------------------------------------------------------
   # Step Templates
