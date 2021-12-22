@@ -6,7 +6,21 @@ cd "$PSScriptRoot\.."
 if ( -not $? ) { throw "Cannot execute solc --version." }
 
 mkdir test_results
-.\build\test\Release\soltest.exe --color_output=no --show_progress=yes --logger=JUNIT,error,test_results/result.xml -- --no-smt
-if ( -not $? ) { throw "Unoptimized soltest run failed." }
-.\build\test\Release\soltest.exe --color_output=no --show_progress=yes --logger=JUNIT,error,test_results/result_opt.xml -- --optimize --no-smt
-if ( -not $? ) { throw "Optimized soltest run failed." }
+{
+    .\build\test\Release\soltest.exe --color_output=no --show_progress=yes --logger=JUNIT,error,test_results/result.xml -- --no-smt --batches 2 --selected-batch 0
+    if ( -not $? ) { throw "Unoptimized soltest run 0 failed." }
+} &
+{
+    .\build\test\Release\soltest.exe --color_output=no --show_progress=yes --logger=JUNIT,error,test_results/result.xml -- --no-smt --batches 2 --selected-batch 1
+    if ( -not $? ) { throw "Unoptimized soltest run 1 failed." }
+} &
+{
+    .\build\test\Release\soltest.exe --color_output=no --show_progress=yes --logger=JUNIT,error,test_results/result_opt.xml -- --optimize --no-smt --batches 2 --selected-batch 0
+    if ( -not $? ) { throw "Optimized soltest run 0 failed." }
+} &
+{
+    .\build\test\Release\soltest.exe --color_output=no --show_progress=yes --logger=JUNIT,error,test_results/result_opt.xml -- --optimize --no-smt --batches 2 --selected-batch 1
+    if ( -not $? ) { throw "Optimized soltest run 1 failed." }
+} &
+
+Get-Job | Wait-Job
