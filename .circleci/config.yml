@@ -1085,6 +1085,8 @@ jobs:
                 name: External <<parameters.project>> tests (native)
                 command: |
                   test/externalTests/<<parameters.project>>.sh native /tmp/workspace/solc/solc
+      - store_artifacts:
+          path: test/externalTests/reports/
       - gitter_notify_failure_unless_pr
 
   b_win: &b_win
