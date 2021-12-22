@@ -543,20 +543,20 @@ function store_benchmark_report
     local framework="$1"
     local project_name="$2"
     local preset="$3"
-    local compile_only_presets="$4"
 
     [[ $framework == truffle || $framework == hardhat ]] || assertFail
     [[ " ${AVAILABLE_PRESETS[*]} " == *" $preset "* ]] || assertFail
 
-    if ! [[ " ${compile_only_presets[*]} " == *" $preset "* ]]; then
-        local report_dir="${REPO_ROOT}/test/externalTests/reports"
-        local output_file="${report_dir}/benchmark-${project_name}-${preset}.json"
-        mkdir -p "$report_dir"
+    local report_dir="${REPO_ROOT}/test/externalTests/reports"
+    local output_file="${report_dir}/benchmark-${project_name}-${preset}.json"
+    mkdir -p "$report_dir"
 
-        {
-            "bytecode_size_json_from_${framework}_artifacts" | combine_artifact_json
+    {
+        if [[ -e $(gas_report_path "$preset") ]]; then
             gas_report_to_json < "$(gas_report_path "$preset")"
-            project_info_json "$project_name"
-        } | jq --slurp 'add' --indent 4 --sort-keys > "$output_file"
-    fi
+        fi
+
+        "bytecode_size_json_from_${framework}_artifacts" | combine_artifact_json
+        project_info_json "$project_name"
+    } | jq --slurp 'add' --indent 4 --sort-keys > "$output_file"
 }
