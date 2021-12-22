@@ -70,7 +70,7 @@ function ens_test
 
     for preset in $SELECTED_PRESETS; do
         hardhat_run_test "$config_file" "$preset" "${compile_only_presets[*]}" compile_fn test_fn
-        store_benchmark_report truffle ens "$preset"
+        store_benchmark_report hardhat ens "$preset"
     done
 }
 

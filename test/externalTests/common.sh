@@ -194,9 +194,19 @@ function force_truffle_compiler_settings
     echo "Compiler version (full): ${SOLCVERSION}"
     echo "-------------------------------------"
 
-    # Forcing the settings should always work by just overwriting the solc object. Forcing them by using a
-    # dedicated settings objects should only be the fallback.
-    echo "module.exports['compilers'] = $(truffle_compiler_settings "$solc_path" "$preset" "$evm_version");" >> "$config_file"
+    local compiler_settings gas_reporter_settings
+    compiler_settings=$(truffle_compiler_settings "$solc_path" "$preset" "$evm_version")
+    gas_reporter_settings=$(eth_gas_reporter_settings "$preset")
+
+    {
+        echo "require('eth-gas-reporter');"
+        echo "module.exports['mocha'] = {"
+        echo "    reporter: 'eth-gas-reporter',"
+        echo "    reporterOptions: ${gas_reporter_settings}"
+        echo "};"
+
+        echo "module.exports['compilers'] = ${compiler_settings};"
+    } >> "$config_file"
 }
 
 function force_hardhat_compiler_binary
