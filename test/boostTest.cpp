@@ -79,12 +79,12 @@ public:
 			// const_cast<test_case&>(_testCase).p_run_status.value = test_unit::RS_DISABLED;
 			m_path.back()->remove(_testCase.p_id);
 	}
-	bool test_suite_start(test_suite const& _testSuite)
+	bool test_suite_start(test_suite const& _testSuite) override
 	{
 		m_path.push_back(&const_cast<test_suite&>(_testSuite));
 		return test_tree_visitor::test_suite_start(_testSuite);
 	}
-	void test_suite_finish(test_suite const& _testSuite)
+	void test_suite_finish(test_suite const& _testSuite) override
 	{
 		m_path.pop_back();
 		test_tree_visitor::test_suite_finish(_testSuite);
