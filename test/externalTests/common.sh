@@ -568,5 +568,5 @@ function store_benchmark_report
 
         "bytecode_size_json_from_${framework}_artifacts" | combine_artifact_json
         project_info_json "$project_name"
-    } | jq --slurp "{\"${project_name}\": {\"preset\": add}}" --indent 4 --sort-keys > "$output_file"
+    } | jq --slurp "{\"${project_name}\": {\"${preset}\": add}}" --indent 4 --sort-keys > "$output_file"
 }
