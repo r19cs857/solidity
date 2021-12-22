@@ -31,7 +31,6 @@ REPODIR="$(realpath "$(dirname "$0")"/..)"
 # shellcheck source=scripts/common.sh
 source "${REPODIR}/scripts/common.sh"
 
-# NOTE: If you add/remove values, remember to update `parallelism` setting in CircleCI config.
 EVM_VALUES=(homestead byzantium constantinople petersburg istanbul berlin london)
 DEFAULT_EVM=london
 [[ " ${EVM_VALUES[*]} " =~ $DEFAULT_EVM ]]
@@ -53,9 +52,9 @@ do
         [ "${EVM}" = "byzantium" ] && [ "${OPTIMIZE}" = "0" ] && EWASM_ARGS="--ewasm"
         ENFORCE_GAS_ARGS=""
         [ "${EVM}" = "${DEFAULT_EVM}" ] && ENFORCE_GAS_ARGS="--enforce-gas-cost"
-        # Run SMTChecker tests only when OPTIMIZE == 0 and EVM is default
+        # Run SMTChecker tests only when OPTIMIZE == 0
         DISABLE_SMTCHECKER=""
-        [ "${OPTIMIZE}" != "0" -o "${EVM}" != "${DEFAULT_EVM}" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
+        [ "${OPTIMIZE}" != "0" ] && DISABLE_SMTCHECKER="-t !smtCheckerTests"
 
         EVM="$EVM" \
         OPTIMIZE="$OPTIMIZE" \

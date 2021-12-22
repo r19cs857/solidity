@@ -50,34 +50,37 @@ mkdir -p test_results
 ulimit -s 16384
 
 get_logfile_basename() {
+    local run="$1"
     local filename="${EVM}"
     test "${OPTIMIZE}" = "1" && filename="${filename}_opt"
     test "${ABI_ENCODER_V1}" = "1" && filename="${filename}_abiv1"
+    filename="${filename}_${run}"
 
     echo -ne "${filename}"
 }
 
-# TODO we need two different log files for the parallel runs
-
-BOOST_TEST_ARGS=("--color_output=no" "--show_progress=yes" "--logger=JUNIT,error,test_results/$(get_logfile_basename).xml" "${BOOST_TEST_ARGS[@]}")
-SOLTEST_ARGS=("--evm-version=$EVM" "${SOLTEST_FLAGS[@]}")
-
-test "${OPTIMIZE}" = "1" && SOLTEST_ARGS+=(--optimize)
-test "${ABI_ENCODER_V1}" = "1" && SOLTEST_ARGS+=(--abiencoderv1)
-
 [ -z "$CIRCLE_NODE_TOTAL" -o "$CIRCLE_NODE_TOTAL" = 0 ] && CIRCLE_NODE_TOTAL=1
 [ -z "$CIRCLE_NODE_INDEX" ] && CIRCLE_NODE_INDEX=0
 
-BATCH1_ARGS="--batches $((2 * CIRCLE_NODE_TOTAL)) --selected-batch $((2 * CIRCLE_NODE_INDEX))"
-BATCH2_ARGS="--batches $((2 * CIRCLE_NODE_TOTAL)) --selected-batch $((2 * CIRCLE_NODE_INDEX + 1))"
+CPUs=2
+for run in $(seq CPUs)
+do
+    BOOST_TEST_ARGS=(
+        "--color_output=no"
+        "--show_progress=yes"
+        "--logger=JUNIT,error,test_results/$(get_logfile_basename $run).xml"
+        "${BOOST_TEST_ARGS[@]}"
+    )
+    SOLTEST_ARGS=("--evm-version=$EVM" "${SOLTEST_FLAGS[@]}")
 
-echo "Running ${REPODIR}/build/test/soltest ${BOOST_TEST_ARGS[*]} -- ${SOLTEST_ARGS[*]}"
+    test "${OPTIMIZE}" = "1" && SOLTEST_ARGS+=(--optimize)
+    test "${ABI_ENCODER_V1}" = "1" && SOLTEST_ARGS+=(--abiencoderv1)
 
-"${REPODIR}/build/test/soltest" --list_content "${BOOST_TEST_ARGS[@]}" -- "${SOLTEST_ARGS[@]}" ${BATCH1_ARGS}
-"${REPODIR}/build/test/soltest" --list_content "${BOOST_TEST_ARGS[@]}" -- "${SOLTEST_ARGS[@]}" ${BATCH2_ARGS}
+    BATCH_ARGS="--batches $((CPUs * CIRCLE_NODE_TOTAL)) --selected-batch $((CPUs * CIRCLE_NODE_INDEX + run))"
 
-"${REPODIR}/build/test/soltest" -l test_suite "${BOOST_TEST_ARGS[@]}" -- "${SOLTEST_ARGS[@]}" ${BATCH1_ARGS} &
-"${REPODIR}/build/test/soltest" -l test_suite "${BOOST_TEST_ARGS[@]}" -- "${SOLTEST_ARGS[@]}" ${BATCH2_ARGS} &
+    echo "Running ${REPODIR}/build/test/soltest ${BOOST_TEST_ARGS[*]} -- ${SOLTEST_ARGS[*]}"
 
+    "${REPODIR}/build/test/soltest" -l test_suite "${BOOST_TEST_ARGS[@]}" -- "${SOLTEST_ARGS[@]}" ${BATCH_ARGS} &
+done
 
 wait
