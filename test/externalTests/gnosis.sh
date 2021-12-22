@@ -26,7 +26,7 @@ source test/externalTests/common.sh
 
 verify_input "$@"
 BINARY_TYPE="$1"
-BINARY_PATH="$2"
+BINARY_PATH=$(realpath "$2")
 
 function compile_fn { npx truffle compile; }
 function test_fn { npm test; }
