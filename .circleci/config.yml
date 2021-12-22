@@ -1196,7 +1196,7 @@ jobs:
       - checkout
       - attach_workspace:
           at: .
-      - run: mkdir -p test-cases/ reports/bytecode/
+      - run: md test-cases\ reports\bytecode\
       - run: cd test-cases\ && python ..\scripts\isolate_tests.py ..\test\
       - run: cd test-cases\ && python ..\scripts\bytecodecompare\prepare_report.py ..\build\solc\Release\solc.exe --interface standard-json --report-file ..\reports\bytecode\windows-json.txt
       - run: cd test-cases\ && python ..\scripts\bytecodecompare\prepare_report.py ..\build\solc\Release\solc.exe --interface cli --report-file ..\reports\bytecode\windows-cli.txt
