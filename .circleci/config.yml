@@ -469,63 +469,56 @@ defaults:
 
   # Separate compile-only runs of those external tests where a full run takes much longer.
   - job_ems_compile_ext_colony: &job_ems_compile_ext_colony
-      t_ems_ext:
-        <<: *workflow_emscripten
-        name: t_ems_compile_ext_colony
-        project: colony
-        binary_type: solcjs
-        compile_only: 1
-        nodejs_version: '14'
+      <<: *workflow_emscripten
+      name: t_ems_compile_ext_colony
+      project: colony
+      binary_type: solcjs
+      compile_only: 1
+      nodejs_version: '14'
   - job_native_compile_ext_gnosis: &job_native_compile_ext_gnosis
-      t_ems_ext:
-        <<: *workflow_ubuntu2004_static
-        name: t_native_compile_ext_gnosis
-        project: gnosis
-        binary_type: native
-        compile_only: 1
-        nodejs_version: '14'
+      <<: *workflow_ubuntu2004_static
+      name: t_native_compile_ext_gnosis
+      project: gnosis
+      binary_type: native
+      compile_only: 1
+      nodejs_version: '14'
 
   - job_native_test_ext_gnosis: &job_native_test_ext_gnosis
-      t_ems_ext:
-          <<: *workflow_emscripten
-          name: t_native_test_ext_gnosis
-          project: gnosis
-          binary_type: native
-          # NOTE: Tests do not start on node.js 14 ("ganache-cli exited early with code 1").
-          nodejs_version: '12'
+      <<: *workflow_emscripten
+      name: t_native_test_ext_gnosis
+      project: gnosis
+      binary_type: native
+      # NOTE: Tests do not start on node.js 14 ("ganache-cli exited early with code 1").
+      nodejs_version: '12'
   - job_native_test_ext_gnosis_v2: &job_native_test_ext_gnosis_v2
-      t_ems_ext:
-        <<: *workflow_ubuntu2004_static
-        name: t_native_test_ext_gnosis_v2
-        project: gnosis-v2
-        binary_type: native
-        # NOTE: Tests do not start on node.js 14 ("ganache-cli exited early with code 1").
-        nodejs_version: '12'
+      <<: *workflow_ubuntu2004_static
+      name: t_native_test_ext_gnosis_v2
+      project: gnosis-v2
+      binary_type: native
+      # NOTE: Tests do not start on node.js 14 ("ganache-cli exited early with code 1").
+      nodejs_version: '12'
   - job_native_test_ext_zeppelin: &job_native_test_ext_zeppelin
-      t_ems_ext:
-        <<: *workflow_ubuntu2004_static
-        name: t_native_test_ext_zeppelin
-        project: zeppelin
-        binary_type: native
-        # NOTE: Tests crash on nodejs 17: "Error: error:0308010C:digital envelope routines::unsupported"
-        nodejs_version: '16'
-        resource_class: large
+      <<: *workflow_ubuntu2004_static
+      name: t_native_test_ext_zeppelin
+      project: zeppelin
+      binary_type: native
+      # NOTE: Tests crash on nodejs 17: "Error: error:0308010C:digital envelope routines::unsupported"
+      nodejs_version: '16'
+      resource_class: large
   - job_native_test_ext_ens: &job_native_test_ext_ens
-      t_ems_ext:
-        <<: *workflow_ubuntu2004_static
-        name: t_native_test_ext_ens
-        project: ens
-        binary_type: native
-        # NOTE: Tests crash on nodejs 17: "Error: error:0308010C:digital envelope routines::unsupported"
-        nodejs_version: '16'
+      <<: *workflow_ubuntu2004_static
+      name: t_native_test_ext_ens
+      project: ens
+      binary_type: native
+      # NOTE: Tests crash on nodejs 17: "Error: error:0308010C:digital envelope routines::unsupported"
+      nodejs_version: '16'
   - job_ems_test_ext_colony: &job_ems_test_ext_colony
-      t_ems_ext:
-        <<: *workflow_emscripten
-        name: t_ems_test_ext_colony
-        project: colony
-        binary_type: solcjs
-        nodejs_version: '14'
-        resource_class: medium
+      <<: *workflow_emscripten
+      name: t_ems_test_ext_colony
+      project: colony
+      binary_type: solcjs
+      nodejs_version: '14'
+      resource_class: medium
 
 # -----------------------------------------------------------------------------------------------
 jobs:
@@ -1383,15 +1376,15 @@ workflows:
       - t_ems_solcjs: *workflow_emscripten
       - t_ems_ext_hardhat: *workflow_emscripten
 
-      - <<: job_ems_compile_ext_colony
-      - <<: job_native_compile_ext_gnosis
+      - t_ems_ext: *job_ems_compile_ext_colony
+      - t_ems_ext: *job_native_compile_ext_gnosis
 
       # FIXME: Gnosis tests are pretty flaky right now. They often fail on CircleCI due to random ProviderError
       # and there are also other less frequent problems. See https://github.com/gnosis/safe-contracts/issues/216.
-      #- <<: job_native_test_ext_gnosis
-      - <<: job_native_test_ext_gnosis_v2
-      - <<: job_native_test_ext_zeppelin
-      - <<: job_native_test_ext_ens
+      #- t_ems_ext: *job_native_test_ext_gnosis
+      - t_ems_ext: *job_native_test_ext_gnosis_v2
+      - t_ems_ext: *job_native_test_ext_zeppelin
+      - t_ems_ext: *job_native_test_ext_ens
 
       # Windows build and tests
       - b_win: *workflow_trigger_on_tags
@@ -1452,4 +1445,4 @@ workflows:
 
       # Emscripten build and tests that take more than 15 minutes to execute
       - b_ems: *workflow_trigger_on_tags
-      - <<: job_ems_test_ext_colony
+      - t_ems_ext: *job_ems_test_ext_colony
