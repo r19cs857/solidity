@@ -550,7 +550,9 @@ function store_benchmark_report
     [[ " ${AVAILABLE_PRESETS[*]} " == *" $preset "* ]] || assertFail
 
     if ! [[ " ${compile_only_presets[*]} " == *" $preset "* ]]; then
-        local output_file="${REPO_ROOT}/test/externalTests/benchmark-${project_name}-${preset}.json"
+        local report_dir="${REPO_ROOT}/test/externalTests/reports"
+        local output_file="${report_dir}/benchmark-${project_name}-${preset}.json"
+        mkdir -p "$report_dir"
 
         {
             "bytecode_size_json_from_${framework}_artifacts" | combine_artifact_json
