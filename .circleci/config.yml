@@ -1149,6 +1149,18 @@ jobs:
             - reports/externalTests/benchmark-*.json
       - gitter_notify_failure_unless_pr
 
+  c_ext_benchmarks:
+    <<: *base_node_latest_small
+    steps:
+      - attach_workspace:
+          at: .
+      - run:
+          name: Combine benchmar reports
+          command: |
+            jq --slurp 'add' reports/externalTests/benchmark-*.json > reports/externaltests/benchmark-all.json
+      - store_artifacts:
+          path: reports/externaltests/benchmark-all.json
+
   b_win: &b_win
     <<: *base_win_powershell_large
     steps:
@@ -1389,6 +1401,17 @@ workflows:
       - t_ems_ext: *job_native_test_ext_gnosis_v2
       - t_ems_ext: *job_native_test_ext_zeppelin
       - t_ems_ext: *job_native_test_ext_ens
+
+      - c_ext_benchmarks:
+          <<: workflow_trigger_on_tags
+          requires:
+            - job_ems_compile_ext_colony
+            - job_native_compile_ext_gnosis
+            #-job_ems_test_ext_colony
+            #-job_native_test_ext_gnosis
+            - job_native_test_ext_gnosis_v2
+            - job_native_test_ext_zeppelin
+            - job_native_test_ext_ens
 
       # Windows build and tests
       - b_win: *workflow_trigger_on_tags
