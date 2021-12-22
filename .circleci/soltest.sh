@@ -68,7 +68,7 @@ get_logfile_basename() {
 CIRCLE_NODE_INDEX=$(((CIRCLE_NODE_INDEX + 23 * INDEX_SHIFT) % CIRCLE_NODE_TOTAL))
 
 CPUs=2
-for run in $(seq CPUs)
+for run in $(seq 0 $((CPUs - 1)))
 do
     BOOST_TEST_ARGS=(
         "--color_output=no"
