@@ -20,9 +20,8 @@
 #------------------------------------------------------------------------------
 set -e
 
-# Requires "${REPO_ROOT}/scripts/common.sh" to be included before.
+# Requires $REPO_ROOT to be defined and "${REPO_ROOT}/scripts/common.sh" to be included before.
 
-REPO_ROOT=$(realpath "$(dirname "$0")/../..")
 CURRENT_EVM_VERSION=london
 
 AVAILABLE_PRESETS=(
