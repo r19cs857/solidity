@@ -1216,7 +1216,7 @@ jobs:
       - attach_workspace:
           at: .
       - run: |
-          mkdir -p emscripten_build/libsolc/
+          mkdir -p emscripten_build/libsolc/ reports/bytecode/
           ln -s ../../build/soljson.js emscripten_build/libsolc/soljson.js
           scripts/bytecodecompare/storebytecode.sh
           mv -v report.txt reports/bytecode/emscripten.txt
